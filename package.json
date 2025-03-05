@@ -1,4 +1,5 @@
 {
+    "name": "address-validator",
     "private": true,
     "type": "module",
     "scripts": {
