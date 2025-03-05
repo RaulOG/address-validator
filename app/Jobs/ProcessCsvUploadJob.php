@@ -48,7 +48,7 @@ class ProcessCsvUploadJob implements ShouldQueue
      */
     private function readCsv(string $filePath): array
     {
-        return array_map('str_getcsv', file($filePath));
+        return array_map('str_getcsv', file(storage_path("app/private/$filePath")));
     }
 
     /** check for existing addresses in the CSV upload

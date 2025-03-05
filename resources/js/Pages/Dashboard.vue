@@ -1,6 +1,18 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3'
+
+defineProps({ errors: Object })
+
+const form = useForm({
+    file: null,
+    mappings: null,
+})
+
+function submit() {
+    form.post('/user/upload')
+}
 </script>
 
 <template>
@@ -21,7 +33,21 @@ import { Head } from '@inertiajs/vue3';
                     class="overflow-hidden bg-white shadow-sm sm:rounded-lg"
                 >
                     <div class="p-6 text-gray-900">
-                        You're logged in!
+                        <form @submit.prevent="submit">
+                            <div>
+                                <label for="file">Select CSV file to upload</label>
+                                <input id="file" type="file" @change="form.file = $event.target.files[0]" accept=".csv" required />
+                                <div v-if="form.errors.file">{{ form.errors.file }}</div>
+                            </div>
+
+                            <div>
+                                <label for="mappings">Mappings</label>
+                                <input type="text" v-model="form.mappings" required />
+                                <div v-if="form.errors.mappings">{{ form.errors.mappings }}</div>
+                            </div>
+
+                            <button type="submit">Upload</button>
+                        </form>
                     </div>
                 </div>
             </div>

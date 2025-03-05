@@ -36,3 +36,4 @@ touch database/database.sqlite
 ```
 ./vendor/bin/sail npm run build
 ```
+* Add GEOAPIFY_API_KEY in `.env`

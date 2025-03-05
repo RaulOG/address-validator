@@ -25,8 +25,6 @@ class CsvUpload extends Model
     ];
 
     public static $allowedUploadMimeTypes = [
-        'text/csv',
-        'application/csv',
         'csv',
     ];
 }
