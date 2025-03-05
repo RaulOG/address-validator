@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class CsvField extends Model
 {
     use hasFactory;
+
+    const string PENDING = 'pending';
+    const string INVALID = 'invalid';
+    const string VALID = 'valid';
+
     protected $fillable = [
         'csv_upload_id',
         'field_data',

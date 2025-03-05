@@ -28,6 +28,7 @@ class ProcessCsvUploadJob implements ShouldQueue
 
     /** handles the CSV upload processing
      * @return void
+     * @throws GuzzleException
      */
     public function handle(): void
     {
@@ -40,6 +41,7 @@ class ProcessCsvUploadJob implements ShouldQueue
         if (!empty($recordsToInsert)) {
             CsvField::insert($recordsToInsert);
         }
+        $this->validateAddresses($existingAddresses);
     }
 
     /** reads the CSV file
@@ -65,7 +67,7 @@ class ProcessCsvUploadJob implements ShouldQueue
      * @param array $existingAddresses
      * @return array
      */
-    private function processRows(array $rows, array $existingAddresses): array
+    private function processRows(array $rows, array &$existingAddresses): array
     {
         $recordsToInsert = [];
 
@@ -80,8 +82,7 @@ class ProcessCsvUploadJob implements ShouldQueue
             $this->mapFields($header, $row, $dataToSave, $addressField);
 
             if ($addressField) {
-                $validationStatus = $this->validateAddress($addressField);
-                $recordsToInsert = $this->prepareRecordsToInsert($dataToSave, $validationStatus, $existingAddresses, $recordsToInsert, $addressField);
+                $recordsToInsert = $this->prepareRecordsToInsert($dataToSave, $existingAddresses, $recordsToInsert, $addressField);
             }
         }
 
@@ -110,19 +111,18 @@ class ProcessCsvUploadJob implements ShouldQueue
 
     /** this will take to account the valid rows and prepare them for batch insertion
      * @param array $dataToSave
-     * @param string $validationStatus
      * @param array $existingAddresses
      * @param array $recordsToInsert
      * @param string $addressField
      * @return array
      */
-    private function prepareRecordsToInsert(array $dataToSave, string $validationStatus, array $existingAddresses, array $recordsToInsert, string $addressField): array
+    private function prepareRecordsToInsert(array $dataToSave, array &$existingAddresses, array $recordsToInsert, string $addressField): array
     {
         if (!in_array($addressField, $existingAddresses)) {
             $recordsToInsert[] = [
                 'csv_upload_id' => $this->csvUpload->id,
                 'field_data' => json_encode($dataToSave),
-                'validation_status' => $validationStatus,
+                'validation_status' => CsvField::PENDING,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
@@ -135,33 +135,23 @@ class ProcessCsvUploadJob implements ShouldQueue
         return $recordsToInsert;
     }
 
-    /** this will validate the address using Geoapify API
-     * @param $address
-     * @return string
+    /** this will validate the addresses as a batch using Geoapify API
+     * @param array $addresses
+     * @return void
      * @throws GuzzleException
      */
-    protected function validateAddress($address): string
+    protected function validateAddresses(array $addresses): void
     {
         $client = new Client();
-        $apiKey = env('GEOAPIFY_API_KEY');
 
-        try {
-            $response = $client->request('GET', 'https://api.geoapify.com/v1/geocode/search', [
-                'query' => [
-                    'text' => $address,
-                    'apiKey' => $apiKey,
-                ],
-            ]);
+        $response = $client->request('POST', 'https://api.geoapify.com/v1/batch/geocode/search', [
+            'json' => $addresses,
+            'query' => [
+                'apiKey' => env('GEOAPIFY_API_KEY'),
+            ]
+        ]);
+        $body = json_decode($response->getBody(), true);
 
-            $body = json_decode($response->getBody(), true);
-
-            if (isset($body['features']) && count($body['features']) > 0) {
-                return 'Valid';
-            } else {
-                return 'Invalid';
-            }
-        } catch (\Exception $e) {
-            return 'Error';
-        }
+        ValidateGeocodesJob::dispatch($this->csvUpload->id, $body['id']);
     }
 }
