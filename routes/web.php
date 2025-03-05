@@ -29,4 +29,4 @@ Route::middleware('auth')->group(function () {
 Route::post('user/upload', [CsvUploadController::class, 'upload'])->name('csv.upload');
 Route::get('fields', [CsvFieldController::class, 'index']);
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

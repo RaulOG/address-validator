@@ -17,8 +17,8 @@ class ProcessCsvUploadJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $csvUpload;
-    protected $mappings;
+    protected CsvUpload $csvUpload;
+    protected array $mappings;
 
     public function __construct(CsvUpload $csvUpload, array $mappings)
     {
@@ -29,7 +29,7 @@ class ProcessCsvUploadJob implements ShouldQueue
     /** handles the CSV upload processing
      * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         $filePath = $this->csvUpload->file_path;
         $rows = $this->readCsv($filePath);

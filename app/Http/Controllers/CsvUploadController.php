@@ -2,22 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CsvUploadRequest;
 use App\Jobs\ProcessCsvUploadJob;
 use App\Models\CsvUpload;
 use Illuminate\Bus\Dispatcher;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class CsvUploadController extends Controller
 {
     /** uploads the CSV file and its mappings
-     * @param Request $request
+     * @param CsvUploadRequest $request
      * @param Dispatcher $dispatcher
      * @return JsonResponse
      */
-    public function upload(Request $request, Dispatcher $dispatcher)
+    public function upload(CsvUploadRequest $request, Dispatcher $dispatcher): JsonResponse
     {
-        $validated = $request->validate(CsvUpload::listUploadValidations());
         if ($request->hasFile('file')) {
             $filePath = $request->file('file')->store('csv_uploads');
 
@@ -30,7 +29,7 @@ class CsvUploadController extends Controller
             ]);
 
             $mappings = [];
-            foreach (explode(',', $validated['mappings']) as $mapping) {
+            foreach (explode(',', $request->input('mappings')) as $mapping) {
                 $mappings[$mapping] = $mapping;
             }
 
@@ -41,6 +40,4 @@ class CsvUploadController extends Controller
 
         return response()->json(['message' => 'No file uploaded.'], 400);
     }
-
-
 }
