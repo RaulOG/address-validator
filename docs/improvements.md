@@ -9,6 +9,7 @@
 * Investigate if its better using the native storage from Laravel to access the uploaded csv instead of using native php file function
 * Investigate if we can read the csv differently (pointers)
 * Due to the nature of addresses, I would think we can reuse Geoapify responses among different csv uploads. Currently, addresses validated with Geoapify are only reused within a csv upload.
+* The code filters rows in CsvField by the addresses, but this field is found within json. It most likely is better performing to include the address in its own field and add a database index to it.
 ##### Testing
 * I believe unit tests are tests that are meant to test classes in isolation. A unit test shouldn't ever create data in db since that would break the isolation and therefore make the test an integration or feature test.
 * I believe unit tests should be created once the application is at a stage we consider robust. In the current scenario, I would still refactor the code so that I wouldn't yet add unit tests.
