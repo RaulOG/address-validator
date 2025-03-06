@@ -5,3 +5,5 @@
 /public/storage
 .env
 /database/database.sqlite
+/storage/test.csv
+/.phpunit.result.cache
