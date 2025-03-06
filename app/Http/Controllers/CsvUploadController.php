@@ -17,27 +17,23 @@ class CsvUploadController extends Controller
      */
     public function upload(CsvUploadRequest $request, Dispatcher $dispatcher): JsonResponse
     {
-        if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('csv_uploads');
+        $filePath = $request->file('file')->store('csv_uploads');
 
-            $csvUpload = CsvUpload::create([
-                'file_name' => $request->file('file')->getClientOriginalName(),
-                'file_path' => $filePath,
-                'uploaded_by' => auth()->id(),
-                'field_mapping' => $request->input('mappings'),
-                'uploaded_at' => now(),
-            ]);
+        $csvUpload = CsvUpload::create([
+            'file_name' => $request->file('file')->getClientOriginalName(),
+            'file_path' => $filePath,
+            'uploaded_by' => auth()->id(),
+            'field_mapping' => $request->input('mappings'),
+            'uploaded_at' => now(),
+        ]);
 
-            $mappings = [];
-            foreach (explode(',', $request->input('mappings')) as $mapping) {
-                $mappings[$mapping] = $mapping;
-            }
-
-            $dispatcher->dispatch(new ProcessCsvUploadJob($csvUpload, $mappings));
-
-            return response()->json(['message' => 'File uploaded successfully.'], 200);
+        $mappings = [];
+        foreach (explode(',', $request->input('mappings')) as $mapping) {
+            $mappings[$mapping] = $mapping;
         }
 
-        return response()->json(['message' => 'No file uploaded.'], 400);
+        $dispatcher->dispatch(new ProcessCsvUploadJob($csvUpload, $mappings));
+
+        return response()->json(['message' => 'File uploaded successfully.'], 200);
     }
 }
